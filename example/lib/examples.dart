@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_onedrive/flutter_onedrive.dart';
 
 class OneDriveButton extends StatefulWidget {
@@ -11,16 +11,20 @@ class OneDriveButton extends StatefulWidget {
   OneDriveButtonState createState() => OneDriveButtonState();
 }
 
-class OneDriveButtonState extends State<OneDriveButton> with WidgetsBindingObserver {
+class OneDriveButtonState extends State<OneDriveButton>
+    with WidgetsBindingObserver {
   late TextEditingController redirectController;
   late TextEditingController clientIDController;
+  late TextEditingController pathController;
   late OneDrive onedrive;
+  List<OneDriveItem>? driveItems;
 
   @override
   void initState() {
     super.initState();
     redirectController = TextEditingController();
     clientIDController = TextEditingController();
+    pathController = TextEditingController(text: "/");
     onedrive = OneDrive(
       redirectURL: redirectController.text,
       clientID: clientIDController.text,
@@ -70,6 +74,50 @@ class OneDriveButtonState extends State<OneDriveButton> with WidgetsBindingObser
 
                   debugPrint(response.body);
                 },
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                child: TextField(
+                  controller: pathController,
+                  decoration: const InputDecoration(labelText: 'Path'),
+                ),
+              ),
+              MaterialButton(
+                child: const Text("GetChildren"),
+                onPressed: () async {
+                  if (pathController.text.isNotEmpty) {
+                    final collectionPage =
+                        await onedrive.getChildren(pathController.text);
+                    driveItems = collectionPage?.value;
+                    if (driveItems != null) {
+                      setState(() {});
+                    }
+                  }
+                },
+              ),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: driveItems?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final driveItem = driveItems![index];
+                    return ListTile(
+                      leading: Icon(driveItem.folder != null
+                          ? Icons.folder_outlined
+                          : Icons.text_snippet_outlined),
+                      title: Text(driveItem.name),
+                      trailing: InkWell(
+                        onTap: () async {
+                          await Clipboard.setData(
+                              ClipboardData(text: driveItem.name));
+                        },
+                        child: const Icon(Icons.copy),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (context, index) {
+                    return const Divider();
+                  },
+                ),
               ),
             ],
           );
