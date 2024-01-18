@@ -17,6 +17,7 @@ class OneDriveButtonState extends State<OneDriveButton>
   late TextEditingController clientIDController;
   late TextEditingController pathController;
   late OneDrive onedrive;
+  Account? account;
   List<OneDriveItem>? driveItems;
 
   @override
@@ -44,6 +45,11 @@ class OneDriveButtonState extends State<OneDriveButton>
           // Has connected
           return Column(
             children: [
+              if (account != null)
+                UserAccountsDrawerHeader(
+                  accountEmail: Text(account!.mail),
+                  accountName: const Text('OneDrive'),
+                ),
               MaterialButton(
                 child: const Text("Disconnect"),
                 onPressed: () async {
@@ -150,6 +156,7 @@ class OneDriveButtonState extends State<OneDriveButton>
                 onPressed: () async {
                   bool success = await onedrive.connect(context);
                   if (success) {
+                    account = await onedrive.signInSilently();
                     setState(() {});
                   }
                 },

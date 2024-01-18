@@ -1,5 +1,6 @@
 library flutter_onedrive;
 
+export 'src/account.dart';
 export 'src/file.dart';
 export 'src/folder.dart';
 export 'src/onedrive_item.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_onedrive/onauth.dart';
 import 'package:flutter_onedrive/onedrive_response.dart';
+import 'package:flutter_onedrive/src/account.dart';
 import 'package:flutter_onedrive/src/onedrive_item_collection_response.dart';
 // import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:http/http.dart' as http;
@@ -360,6 +362,32 @@ class OneDrive with ChangeNotifier {
     return null;
   }
 
+  Future<Account?> signInSilently() async {
+    final accessToken = await _tokenManager.getAccessToken();
+    if (accessToken == null) {
+      return null;
+    }
+
+    final url = Uri.parse("${apiEndpoint}me");
+
+    try {
+      final resp = await http.get(
+        url,
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
+
+      final json = jsonDecode(resp.body);
+      debugPrint(
+          "# OneDrive -> signInSilently: ${resp.statusCode}\n# json: $json}");
+      final account = Account.fromJson(json);
+      return account;
+    } catch (err) {
+      debugPrint("# OneDrive -> signInSilently: $err");
+    }
+
+    return null;
+  }
+
   Future<OneDriveItemCollectionResponse?> getChildren(String remotePath) async {
     final accessToken = await _tokenManager.getAccessToken();
     if (accessToken == null) {
@@ -384,9 +412,9 @@ class OneDrive with ChangeNotifier {
           "# OneDrive -> getChildren: ${resp.statusCode}\n# Body: ${resp.body}");
 
       final json = jsonDecode(resp.body);
-      final collectionResponse = OneDriveItemCollectionResponse.fromJson(json);
       debugPrint(
           "# OneDrive -> getChildren: ${resp.statusCode}\n# json: $json}");
+      final collectionResponse = OneDriveItemCollectionResponse.fromJson(json);
       return collectionResponse;
     } catch (err) {
       debugPrint("# OneDrive -> getChildren: $err");
