@@ -422,6 +422,13 @@ class OneDrive with ChangeNotifier {
 
     return null;
   }
+
+  Future<Map<String, String>> get authHeaders async {
+    final accessToken = await _tokenManager.getAccessToken();
+    return <String, String>{
+      "Authorization": "Bearer $accessToken",
+    };
+  }
 }
 
 class UploadStatus {
