@@ -30,6 +30,7 @@ class OneDrive with ChangeNotifier {
   static const String errCANCELED = "CANCELED";
   static const _appRootFolder = "special/approot";
   static const _defaultRootFolder = "root";
+  static const permissionUserRead = "User.Read";
   static const permissionFilesReadWriteAppFolder = "Files.ReadWrite.AppFolder";
   static const permissionFilesReadWriteAll = "Files.ReadWrite.All";
   static const permissionOfflineAccess = "offline_access";
@@ -44,7 +45,8 @@ class OneDrive with ChangeNotifier {
   OneDrive({
     required this.clientID,
     required this.redirectURL,
-    this.scopes = "$permissionFilesReadWriteAll $permissionOfflineAccess",
+    this.scopes =
+        "$permissionUserRead $permissionFilesReadWriteAll $permissionOfflineAccess",
     this.state = "OneDriveState",
     ITokenManager? tokenManager,
   }) {
